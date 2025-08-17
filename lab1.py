@@ -45,7 +45,7 @@ while running:
     point1x = 1000
     point1y = 500 
     point2x = 600
-    point2y = 500
+    point2y = 600
     lines(screen, "red", True, [(point1x,point1y),(point2x,point2y)], linewidth)
 
     # flip() the display to put your work on screen
