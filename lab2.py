@@ -3,24 +3,27 @@ from pygame.draw import circle, lines, rect
 from pygame.math import Vector2
 from agent import Agent
 
+screen_width = 1280
+screen_height = 720
+
 class App:
     def __init__(self):
         print("Application is created")
         pygame.init()
         self.screen_width = 1280
         self.screen_height = 720
-        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
+        self.screen = pygame.display.set_mode((screen_width, screen_height))
         self.clock = pygame.time.Clock()
         self.running = True
-        self.ball = Agent()
+        self.ball = Agent(position = Vector2(screen_width/2, screen_height/2), radius= 100, color= (255,0,0))
     
     def handle_input(self):
         for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
     
-    def update(self):
-        self.ball.update()
+    def update(self, delta_time_ms):
+        self.ball.update(delta_time_ms)
 
     def draw(self):
         self.screen.fill("grey")
@@ -29,10 +32,11 @@ class App:
 
     def run(self):
         while self.running:
+            delta_time_ms = self.clock.tick(60)
             self.handle_input()
-            self.update()
+            self.update(delta_time_ms)
             self.draw()
-            self.clock.tick(60) 
+ 
         
         pygame.quit()
 
