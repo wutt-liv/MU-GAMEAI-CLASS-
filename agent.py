@@ -17,6 +17,8 @@ class Agent:
         self.detect_distance = 300
         self.safe_distance = 500
         self.target = Vector2(0,0)
+        self.gravity = Vector2(0,0)
+        self.center_of_mass = Vector2(0,0)
     
     def seek_to(self, target_pos):
         MAX_FORCE = 5
@@ -80,18 +82,79 @@ class Agent:
 
     def apply_force(self, force):
         self.acc += force / self.mass
+
+    def set_gravity(self, gravity):
+        self.gravity = gravity
     
+    def get_cohesion_force(self, agents):
+        count = 0
+        center_of_mass = Vector2(0,0)
+        for agent in agents:
+            dist = (agent.position - self.position).length_squared()
+            if 0 < dist < 400 * 400:
+                center_of_mass += agent.position
+                count += 1
+        
+        if count > 0:
+            center_of_mass /= count
+
+            d = center_of_mass - self.position
+            d.scale_to_length(2)
+
+            self.center_of_mass = center_of_mass
+
+            return d
+        return Vector2()
+    
+    def get_separation_force(self, agents):
+        s = Vector2()
+        count = 0
+        for agent in agents:
+            dist = (agent.position - self.position).length_squared()
+            if dist < 100*100 and dist != 0:
+                d = self.position - agent.position
+                s += d
+                count += 1
+
+        if count > 0:
+            s.scale_to_length(2)
+            return s
+        return Vector2()
+    
+    def get_align_force(self, agents):
+        s = Vector2()
+        count = 0
+        for agent in agents:
+            dist = (agent.position - self.position).length_squared()
+            if dist < 500*500 and dist != 0:
+                s += agent.vel
+                count += 1
+
+        if count > 0 and s != Vector2():
+            s /= count
+            s.scale_to_length(2)
+            return s
+        return Vector2()
+    
+    def bound_check(self, agent):
+        if agent.position.x < -30:
+            agent.position.x = self.screen_width + 30
+        elif agent.position.x > self.screen_width + 30:
+            agent.position.x = -20
+        if agent.position.y < -10:
+            agent.position.y = self.screen_height + 30
+        elif agent.position.y > self.screen_height + 30:
+            agent.position.y = -20
+            
     def update(self, delta_time_s):
-        self.vel = self.vel + self.acc
+        self.vel = self.vel + self.acc + self.gravity
+        self.vel *= 0.95
         self.position = self.position + self.vel
         self.acc.x = 0
         self.acc.y = 0
 
     def draw(self,screen):
-            
-        #circle(screen, (100,100,0), 
-                #self.position, self.EYE_SIGHT, width = 1)
-        line(screen, (100,100,100), self.position, self.target)
+        line(screen, (100, 100, 100), self.position, self.center_of_mass)
         circle(screen, self.cycle_color, 
                self.position, self.radius)
     
